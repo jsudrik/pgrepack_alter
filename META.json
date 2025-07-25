@@ -24,13 +24,13 @@
       }
    },
    "resources": {
-      "homepage": "https://github.com/pgrepack_fork",
+      "homepage": "https://github.com/pgrepack_alter",
       "bugtracker": {
-         "web": "https://github.com/jsudrik/pgrepack_fork/issues"
+         "web": "https://github.com/jsudrik/pgrepack_alter/issues"
       },
       "repository": {
-          "url": "git://github.com/jsudrik/pgrepack_fork.git",
-          "web": "https://github.com/jsudrik/pgrepack_fork/",
+          "url": "git://github.com/jsudrik/pgrepack_alter.git",
+          "web": "https://github.com/jsudrik/pgrepack_alter/",
           "type": "git"
       }
    },
