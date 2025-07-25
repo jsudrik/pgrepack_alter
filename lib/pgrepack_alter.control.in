@@ -1,0 +1,5 @@
+# pgrepack_alter extension
+comment = 'Reorganize and selectively alter tables in PostgreSQL databases with minimal locks'
+default_version = '1.0.0'
+module_pathname = '$libdir/pgrepack_alter'
+relocatable = false

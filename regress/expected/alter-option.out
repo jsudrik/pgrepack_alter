@@ -1,0 +1,106 @@
+SET client_min_messages = warning;
+--
+-- Test --alter option validation
+--
+-- Test valid ALTER clauses (should not error)
+\! pg_repack --dbname=contrib_regression --help | grep -A1 "alter="
+pg_repack: unrecognized option `--help'
+Try "pg_repack --help" for more information.
+-- Test invalid ALTER clause - should error
+\! pg_repack --dbname=contrib_regression --table=dummy_table --alter="DROP COLUMN old_col"
+ERROR: Invalid ALTER clause. Only the following operations are allowed (case-insensitive):
+  - ALTER COLUMN [colname] SET DATA TYPE [datatype]
+  - ALTER COLUMN [colname] SET DEFAULT [expression]
+  - ALTER COLUMN [colname] SET STORAGE [storage_type]
+  - ADD COLUMN [colname] [datatype] [DEFAULT value]
+-- Test invalid ALTER clause - should error  
+\! pg_repack --dbname=contrib_regression --table=dummy_table --alter="TRUNCATE TABLE"
+ERROR: Invalid ALTER clause. Only the following operations are allowed (case-insensitive):
+  - ALTER COLUMN [colname] SET DATA TYPE [datatype]
+  - ALTER COLUMN [colname] SET DEFAULT [expression]
+  - ALTER COLUMN [colname] SET STORAGE [storage_type]
+  - ADD COLUMN [colname] [datatype] [DEFAULT value]
+-- Test invalid ALTER clause - should error
+\! pg_repack --dbname=contrib_regression --table=dummy_table --alter="ALTER COLUMN name DROP DEFAULT"
+ERROR: Invalid ALTER clause. Only the following operations are allowed (case-insensitive):
+  - ALTER COLUMN [colname] SET DATA TYPE [datatype]
+  - ALTER COLUMN [colname] SET DEFAULT [expression]
+  - ALTER COLUMN [colname] SET STORAGE [storage_type]
+  - ADD COLUMN [colname] [datatype] [DEFAULT value]
+-- Test invalid ALTER clause - should error
+\! pg_repack --dbname=contrib_regression --table=dummy_table --alter="ALTER COLUMN name SET NOT NULL"
+ERROR: Invalid ALTER clause. Only the following operations are allowed (case-insensitive):
+  - ALTER COLUMN [colname] SET DATA TYPE [datatype]
+  - ALTER COLUMN [colname] SET DEFAULT [expression]
+  - ALTER COLUMN [colname] SET STORAGE [storage_type]
+  - ADD COLUMN [colname] [datatype] [DEFAULT value]
+-- Test empty ALTER clause - should error
+\! pg_repack --dbname=contrib_regression --table=dummy_table --alter=""
+ERROR: Invalid ALTER clause. Only the following operations are allowed (case-insensitive):
+  - ALTER COLUMN [colname] SET DATA TYPE [datatype]
+  - ALTER COLUMN [colname] SET DEFAULT [expression]
+  - ALTER COLUMN [colname] SET STORAGE [storage_type]
+  - ADD COLUMN [colname] [datatype] [DEFAULT value]
+-- Create test table for ALTER clause tests
+CREATE TABLE alter_test_table (
+    id INTEGER PRIMARY KEY,
+    name VARCHAR(50),
+    age INTEGER,
+    data TEXT
+);
+INSERT INTO alter_test_table VALUES (1, 'Alice', 25, 'test data');
+INSERT INTO alter_test_table VALUES (2, 'Bob', 30, 'more data');
+-- Test ALTER COLUMN SET DATA TYPE
+\! pg_repack --dbname=contrib_regression --table=alter_test_table --alter="ALTER COLUMN name SET DATA TYPE varchar(100)" --dry-run
+INFO: Dry run enabled, not executing repack
+INFO: repacking table "public.alter_test_table"
+-- Test ALTER COLUMN SET DEFAULT
+\! pg_repack --dbname=contrib_regression --table=alter_test_table --alter="ALTER COLUMN age SET DEFAULT 0" --dry-run
+INFO: Dry run enabled, not executing repack
+INFO: repacking table "public.alter_test_table"
+-- Test ALTER COLUMN SET STORAGE
+\! pg_repack --dbname=contrib_regression --table=alter_test_table --alter="ALTER COLUMN data SET STORAGE EXTENDED" --dry-run
+INFO: Dry run enabled, not executing repack
+INFO: repacking table "public.alter_test_table"
+-- Test ADD COLUMN with DEFAULT
+\! pg_repack --dbname=contrib_regression --table=alter_test_table --alter="ADD COLUMN new_col INTEGER DEFAULT 42" --dry-run
+INFO: Dry run enabled, not executing repack
+INFO: repacking table "public.alter_test_table"
+-- Test ADD COLUMN without DEFAULT
+\! pg_repack --dbname=contrib_regression --table=alter_test_table --alter="ADD COLUMN status VARCHAR(20)" --dry-run
+INFO: Dry run enabled, not executing repack
+INFO: repacking table "public.alter_test_table"
+-- Test case insensitive ALTER clause
+\! pg_repack --dbname=contrib_regression --table=alter_test_table --alter="alter column name set data type varchar(200)" --dry-run
+INFO: Dry run enabled, not executing repack
+INFO: repacking table "public.alter_test_table"
+-- Clean up test table
+DROP TABLE alter_test_table;
+-- Test that --alter cannot be used with --all
+\! pg_repack --dbname=contrib_regression --all --alter="ALTER COLUMN name SET DATA TYPE varchar(100)"
+ERROR: cannot specify --alter and --all (-a)
+-- Test that --alter cannot be used with --schema
+\! pg_repack --dbname=contrib_regression --schema=public --alter="ALTER COLUMN name SET DATA TYPE varchar(100)"
+ERROR: cannot specify --alter and --schema (-c)
+-- Test that --alter cannot be used with --index
+\! pg_repack --dbname=contrib_regression --index=dummy_index --alter="ALTER COLUMN name SET DATA TYPE varchar(100)"
+ERROR: cannot specify --alter and --index (-i)
+-- Test that --alter cannot be used with --only-indexes
+\! pg_repack --dbname=contrib_regression --table=dummy_table --only-indexes --alter="ALTER COLUMN name SET DATA TYPE varchar(100)"
+ERROR: cannot specify --alter and --only-indexes (-x)
+-- Test that --alter cannot be used with --parent-table
+\! pg_repack --dbname=contrib_regression --parent-table=dummy_table --alter="ALTER COLUMN name SET DATA TYPE varchar(100)"
+ERROR: cannot specify --alter and --parent-table (-I)
+-- Test that --alter cannot be used with --tablespace
+\! pg_repack --dbname=contrib_regression --table=dummy_table --tablespace=pg_default --alter="ALTER COLUMN name SET DATA TYPE varchar(100)"
+ERROR: cannot specify --alter and --tablespace (-s)
+-- Test that --alter cannot be used with --order-by
+\! pg_repack --dbname=contrib_regression --table=dummy_table --order-by="id" --alter="ALTER COLUMN name SET DATA TYPE varchar(100)"
+ERROR: cannot specify --alter and --order-by (-o)
+-- Test that --alter cannot be used with --jobs
+\! pg_repack --dbname=contrib_regression --table=dummy_table --jobs=2 --alter="ALTER COLUMN name SET DATA TYPE varchar(100)"
+ERROR: cannot specify --alter and --jobs (-j)
+-- Test that --alter works with allowed options (dry-run)
+\! pg_repack --dbname=contrib_regression --table=dummy_table --dry-run --wait-timeout=120 --alter="ALTER COLUMN name SET DATA TYPE varchar(100)"
+INFO: Dry run enabled, not executing repack
+ERROR: pg_repack failed with error: ERROR:  relation "dummy_table" does not exist

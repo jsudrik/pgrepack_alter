@@ -1,0 +1,41 @@
+{
+   "name": "pgrepack_alter",
+   "abstract": "PostgreSQL module for data reorganization with ALTER support",
+   "description": "Reorganize and selectively alter tables in PostgreSQL databases with minimal locks",
+   "version": "1.0.0",
+   "maintainer": [
+       "Jay Sudrik <jsudrik@gmail.com>",
+    ],
+   "tags": [ "bloat", "maintenance", "vacuum", "cluster", "alter" ],
+   "release_status": "stable",
+   "license": "bsd",
+   "provides": {
+      "pgrepack_alter": {
+         "file": "lib/pgrepack_alter.sql",
+         "version": "1.0.0",
+         "abstract": "Reorganize and selectively alter tables in PostgreSQL databases with minimal locks"
+      }
+   },
+   "prereqs": {
+      "runtime": {
+         "requires": {
+            "PostgreSQL": "9.5.0"
+         }
+      }
+   },
+   "resources": {
+      "homepage": "https://github.com/pgrepack_fork",
+      "bugtracker": {
+         "web": "https://github.com/jsudrik/pgrepack_fork/issues"
+      },
+      "repository": {
+          "url": "git://github.com/jsudrik/pgrepack_fork.git",
+          "web": "https://github.com/jsudrik/pgrepack_fork/",
+          "type": "git"
+      }
+   },
+   "meta-spec": {
+      "version": "1.0.0",
+      "url": "https://pgxn.org/meta/spec.txt"
+   }
+}

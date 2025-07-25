@@ -1,0 +1,92 @@
+SET client_min_messages = warning;
+--
+-- Test ALTER clause execution during repack
+--
+-- Create test table with data
+CREATE TABLE alter_exec_test (
+    id INTEGER PRIMARY KEY,
+    name VARCHAR(20),
+    age INTEGER DEFAULT 25,
+    data TEXT
+);
+INSERT INTO alter_exec_test VALUES (1, 'Alice', 30, 'test data 1');
+INSERT INTO alter_exec_test VALUES (2, 'Bob', 35, 'test data 2');
+INSERT INTO alter_exec_test VALUES (3, 'Charlie', 40, 'test data 3');
+-- Check original table structure
+\d alter_exec_test
+                 Table "public.alter_exec_test"
+ Column |         Type          | Collation | Nullable | Default 
+--------+-----------------------+-----------+----------+---------
+ id     | integer               |           | not null | 
+ name   | character varying(20) |           |          | 
+ age    | integer               |           |          | 25
+ data   | text                  |           |          | 
+Indexes:
+    "alter_exec_test_pkey" PRIMARY KEY, btree (id)
+
+-- Test ALTER COLUMN SET DATA TYPE - expand varchar size
+\! pg_repack --dbname=contrib_regression --table=alter_exec_test --alter="ALTER COLUMN name SET DATA TYPE varchar(100)"
+INFO: repacking table "public.alter_exec_test"
+INFO: Applying ALTER to original table: ALTER TABLE public.alter_exec_test ALTER COLUMN name SET DATA TYPE varchar(100)
+INFO: ALTER applied successfully to original table
+-- Verify data is preserved and type changed
+SELECT id, name, age, data FROM alter_exec_test ORDER BY id;
+ id |  name   | age |    data     
+----+---------+-----+-------------
+  1 | Alice   |  30 | test data 1
+  2 | Bob     |  35 | test data 2
+  3 | Charlie |  40 | test data 3
+(3 rows)
+
+\d alter_exec_test
+                  Table "public.alter_exec_test"
+ Column |          Type          | Collation | Nullable | Default 
+--------+------------------------+-----------+----------+---------
+ id     | integer                |           | not null | 
+ name   | character varying(100) |           |          | 
+ age    | integer                |           |          | 25
+ data   | text                   |           |          | 
+Indexes:
+    "alter_exec_test_pkey" PRIMARY KEY, btree (id)
+
+-- Test ADD COLUMN with DEFAULT
+\! pg_repack --dbname=contrib_regression --table=alter_exec_test --alter="ADD COLUMN status VARCHAR(10) DEFAULT 'active'"
+INFO: repacking table "public.alter_exec_test"
+INFO: Applying ALTER to original table: ALTER TABLE public.alter_exec_test ADD COLUMN status VARCHAR(10) DEFAULT 'active'
+INFO: ALTER applied successfully to original table
+-- Verify new column added with default values
+SELECT id, name, age, status FROM alter_exec_test ORDER BY id;
+ id |  name   | age | status 
+----+---------+-----+--------
+  1 | Alice   |  30 | active
+  2 | Bob     |  35 | active
+  3 | Charlie |  40 | active
+(3 rows)
+
+\d alter_exec_test
+                            Table "public.alter_exec_test"
+ Column |          Type          | Collation | Nullable |           Default           
+--------+------------------------+-----------+----------+-----------------------------
+ id     | integer                |           | not null | 
+ name   | character varying(100) |           |          | 
+ age    | integer                |           |          | 25
+ data   | text                   |           |          | 
+ status | character varying(10)  |           |          | 'active'::character varying
+Indexes:
+    "alter_exec_test_pkey" PRIMARY KEY, btree (id)
+
+-- Test ALTER COLUMN SET DEFAULT
+\! pg_repack --dbname=contrib_regression --table=alter_exec_test --alter="ALTER COLUMN age SET DEFAULT 18"
+INFO: repacking table "public.alter_exec_test"
+INFO: Applying ALTER to original table: ALTER TABLE public.alter_exec_test ALTER COLUMN age SET DEFAULT 18
+INFO: ALTER applied successfully to original table
+-- Verify default changed (insert new row to test)
+INSERT INTO alter_exec_test (id, name) VALUES (4, 'David');
+SELECT id, name, age, status FROM alter_exec_test WHERE id = 4;
+ id | name  | age | status 
+----+-------+-----+--------
+  4 | David |  18 | active
+(1 row)
+
+-- Clean up
+DROP TABLE alter_exec_test;
