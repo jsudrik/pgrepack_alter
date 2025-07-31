@@ -11,7 +11,7 @@ The approach is minimalist just to get blocking DDLs which can lock the table fo
 
 There are good alternatives available for this such as 
 
-	https://github.com/phillbaker/pg_migrate
-	https://github.com/shayonj/pg-osc
+	- https://github.com/phillbaker/pg_migrate
+	- https://github.com/shayonj/pg-osc
 
 However, I think with much of the internal working the same, there should be just one extension available for repack as well as just few DDLs which can hold the table lock for long time for really big data sizes.
