@@ -15,11 +15,33 @@ There are other good alternatives available for this such as
 
 However, I think with much of the internal working the same, there should be just one extension available for repack as well as just few DDLs which can hold the table lock for long time for really big data sizes.
 
+This is just experimental and not ready for production use, which needs exhaustive testing. You are welcome to use it for educational purpose for experiments.
+
+Features: 
+- Validates ALTER clauses to only allow safe operations
+- Supports case-insensitive input validation
+- Executes ALTER on shadow table after creation, before data copy
+- Includes regression tests (coverage could be improved)
+
 The supported ALTER TABLE DDL operations with this are
 
   - ALTER COLUMN [column_name] SET DATA TYPE [data_type]
-  - ALTER COLUMN [column_name] SET DEFAULT [value | expression]
+  - ALTER COLUMN [column_name] SET DEFAULT [value | expression]"ALTER COLUMN name SET DATA TYPE varchar(100)"
   - ADD COLUMN [column_name data_type] DEFAULT [value | expression]
   - ALTER COLUMN [column_name] SET STORAGE [storage_options]
 
-This is just experimental and not ready for production use, which needs exhaustive testing. You are welcome to use it for educational purpose for experiments.
+Usage restrictions: 
+- Can only be used with --table option
+- Compatible with --dry-run and --wait-timeout
+- Incompatible with most other options for safety
+
+==========
+* Example Usage: 
+
+  - pg_repack --table=mytable --alter="ALTER COLUMN samples SET DATA TYPE bigint"
+  - pg_repack --table=mytable --alter="ADD COLUMN status VARCHAR(10) DEFAULT 'active'"
+  
+==========
+
+
+
